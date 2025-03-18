@@ -1,9 +1,17 @@
 {
-  "dependencies": {
-    "cypress": "^14.2.0"
-  },
+  "name": "assessmentv2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "devDependencies": {
-    "cypress-social-logins": "^1.14.2",
+    "@playwright/test": "^1.51.0",
+    "@types/node": "^22.13.10"
+  },
+  "dependencies": {
     "dotenv": "^16.4.7"
   }
 }

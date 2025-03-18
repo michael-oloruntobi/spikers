@@ -1,82 +1,149 @@
-# Cypress Project: Social Connect Tests
+# Social Connect Test Automation
 
-This project is designed to automate the testing of social connect features, specifically focusing on navigating to YouTube and verifying the appearance of an image after logging in via Google. Below, you'll find instructions for setting up and running the project, an overview of the architectural choices, and details on how to execute the tests.
+## Overview
+This project contains automated tests for the Social Connect feature using Playwright. The tests validate social media integrations, such as YouTube authentication and profile verification.
 
-## Setup and Run Instructions
+## Prerequisites
+Ensure you have the following installed before running the tests:
 
-### Prerequisites
-- **Node.js**: Ensure Node.js is installed on your machine. You can download it from [nodejs.org](https://nodejs.org/).
-- **Cypress**: This project uses Cypress for end-to-end testing.
+- Node.js (>= 16.x)
+- npm or yarn
+- Playwright (latest version)
+- Google Chrome or Chromium-based browser
 
-### Installation
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd <repository-folder>
+## Setup Instructions
+
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo/social-connect-tests.git
+   cd social-connect-tests
    ```
-2. **Install dependencies**:
-   ```bash
+2. Install dependencies:
+   ```sh
    npm install
    ```
-3. **Set up environment variables**:
-   Create a `.env` file in the root directory of your project and add the following variables:
-   ```plaintext
-   BASE_URL=<your-base-url>
-   GOOGLE_USERNAME=<your-google-username>
-   GOOGLE_PASSWORD=<your-google-password>
-   USERNAME=<your-username>
-   PASSWORD=<your-password>
+3. Install Playwright browsers:
+   ```sh
+   npx playwright install
    ```
-   Replace `<your-base-url>`, `<your-google-username>`, `<your-google-password>`, `<your-username>`, and `<your-password>` with your actual credentials and base URL.
+4. Create a `.env` file in the root directory and add the required environment variables (see below).
 
-### Running the Tests
-To run the tests, use the following command:
-```bash
-npx cypress open
+## Environment Variables
+
+Create a `.env` file with the following variables:
+
+```env
+BASE_URL=https://demo.spikerz.com
+GOOGLE_USERNAME=your-google-email
+GOOGLE_PASSWORD=your-google-password
+PROFILE_PICTURE_URL=https://static-assets.spikerz.com/demo/profile-nina.png
+TARGET_YOUTUBE_CHANNEL_ID=@dina_bakery_shop
+USERNAME=me
+PASSWORD=SmipMe123456
 ```
-This command opens the Cypress Test Runner, where you can execute the `socialConnect.cy.js` spec file.
+> **Note:** Use secure methods to store sensitive credentials (e.g., environment secrets in CI/CD pipelines).
 
-Alternatively, to run the tests headlessly:
-```bash
-npx cypress run
+## Running Tests
+
+Run all tests:
+```sh
+npx playwright test
 ```
 
-## Overview of Architectural Choices
+Run a specific test file:
+```sh
+npx playwright test tests/socialConnect.spec.js
+```
 
-### Page Object Model (POM)
-The project utilizes the Page Object Model design pattern to enhance test maintenance and reduce code duplication. Each page in the application has a corresponding class (e.g., `SocialConnectPage`) that encapsulates the page's selectors and interactions.
+Run tests in headed mode:
+```sh
+npx playwright test --headed
+```
 
-### Custom Commands
-Custom Cypress commands are used to abstract common actions and assertions. For example, the `visitURL` command handles navigation with basic authentication, simplifying test scripts and improving readability.
+Run tests with HTML report:
+```sh
+npx playwright test --reporter=html
+```
 
-### Environment Configuration
-Environment variables are managed through a `.env` file and accessed via `Cypress.env()`. This approach keeps sensitive information secure and makes the project adaptable to different environments without code changes.
+## Continuous Integration
 
-### Handling External Logins
-The test for social connect features involves logging into Google. This is handled using Cypress's `cy.origin` command, which allows tests to interact with multiple domains securely.
+This project includes a GitHub Actions workflow to automatically run Playwright tests on every push request to the `master` branch. The workflow is defined in `.github/workflows/playwright-tests.yml` and includes environment variables for authentication and test execution.
 
-## Instructions for Running Tests
+### GitHub Actions Workflow
 
-### Test File: `socialConnect.cy.js`
-This spec file contains tests for the social connect functionality, specifically navigating to YouTube and verifying an image appears after logging in via Google.
+Ensure your repository’s GitHub Actions secrets contain the following environment variables:
 
-#### Key Actions:
-1. **Navigate to YouTube**: The test navigates to the YouTube section of the application.
-2. **Click Subscribe Button**: It clicks the subscribe button, which triggers a new window or tab.
-3. **Handle Navigation**: The test captures the URL of the new window and logs into Google using the credentials provided in the environment variables.
-4. **Verify Login**: After logging in, the test verifies that the navigation was successful.
+- `BASE_URL`
+- `GOOGLE_USERNAME`
+- `GOOGLE_PASSWORD`
+- `PROFILE_PICTURE_URL`
+- `TARGET_YOUTUBE_CHANNEL_ID`
+- `USERNAME`
+- `PASSWORD`
 
-### Pages
-- **SocialConnectPage**: Contains methods for navigating to YouTube and interacting with the subscribe button.
+Example configuration in the workflow file:
 
-### Commands
-- **visitURL**: A custom command that navigates to a specified URL with basic authentication.
+```yaml
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+      env:
+        BASE_URL: ${{ secrets.BASE_URL }}
+        GOOGLE_USERNAME: ${{ secrets.GOOGLE_USERNAME }}
+        GOOGLE_PASSWORD: ${{ secrets.GOOGLE_PASSWORD }}
+        PROFILE_PICTURE_URL: ${{ secrets.PROFILE_PICTURE_URL }}
+        TARGET_YOUTUBE_CHANNEL_ID: ${{ secrets.TARGET_YOUTUBE_CHANNEL_ID }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PASSWORD: ${{ secrets.PASSWORD }}
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
+```
 
-### Configuration
-- **cypress.config.js**: Configures the base URL and environment variables for the project.
+## Test Structure
 
-### Environment Variables
-Ensure all required environment variables are set in the `.env` file before running the tests.
+- `tests/` – Contains all test files
+- `pages/` – Page Object Model (POM) classes for better test maintainability
+- `utils/` – Utility functions, such as authentication helpers
+- `playwright.config.js` – Playwright configuration file
 
-## Conclusion
-This project demonstrates a structured approach to automating social connect tests using Cypress. By following the setup instructions and understanding the architectural choices, you can efficiently run and maintain the tests.
+## Error Handling & Debugging
+
+- Run tests with `DEBUG=pw:api npx playwright test` to see API calls
+- Check Playwright’s trace viewer with `--trace on-first-retry`
+
+## Security Considerations
+
+- Avoid logging sensitive data
+- Use `.env` instead of hardcoding credentials
+- Implement secure authentication handling in CI/CD pipelines
+
+## Contribution Guidelines
+
+- Follow Playwright best practices
+- Use descriptive commit messages
+- Run `npx playwright test` before submitting PRs
+- Document changes in the README or relevant test files
+
+For any issues, please create a GitHub issue or reach out to me at michael.oloruntobi@gmail.com.
